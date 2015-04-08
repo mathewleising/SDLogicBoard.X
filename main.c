@@ -9,7 +9,11 @@
 #include <stdlib.h>
 #include <plib.h>
 #include "config.h"
+#include "w5200_config.h"
+#include "w5200_buf.h"
+#include "w5200_sock.h"
 
+#define _SUPPRESS_PLIB_WARNING 
 // Configuration Bit settings
 // SYSCLK = 48 MHz (8MHz Crystal / FPLLIDIV * FPLLMUL / FPLLODIV)
 // PBCLK = 48 MHz (SYSCLK / FPBDIV)

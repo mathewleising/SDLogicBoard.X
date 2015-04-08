@@ -68,101 +68,98 @@ WIZNETSocketState w52_sockets[W52_MAX_SOCKETS];
 /* Which socket did an IRQ refer to */
 int wiznet_irq_getsocket()
 {
-	uint8_t ir2, bit;
-	int i, sock = -1;
+    uint8_t ir2, bit;
+    int i, sock = -1;
 
-	#if WIZNET_DEBUG > 4
-	const char *funcname = "wiznet_irq_getsocket()";
-	#endif
 
-	if (w5200_irq) {
-		ir2 = wiznet_r_reg(W52_IR2);
-		if (!ir2) {
-			w5200_irq = 0x00;
-			wiznet_debug5_printf("%s: w5200_irq was set but IR2 cleared; clearing w5200_irq\n", funcname);
-			return -EAGAIN;  // No IRQs pending but w5200_irq was never cleared.
-		}
-		/* Return 1 socket at a time, lower socket # = higher priority
-		 * If more than 1 socket is pending, w5200_irq will not be cleared.
-		 */
-		for (i=0; i < W52_MAX_SOCKETS; i++) {
-			bit = 1 << i;
-			if ( (ir2 & bit) && sock < 0 ) {
-				sock = i;
-				w5200_irq = 0x00;
-			}
-			if ( (ir2 & bit) && sock >= 0 ) {
-				//Multiple sockets pending IRQ
-				w5200_irq = 0x01;
-			}
-		}
-		return sock;
-	} else {
-		//w5200_irq not set/
-	}
-	return -EAGAIN;  // No IRQ fired; nothing more to see here!
+    if (w5200_irq) {
+        ir2 = wiznet_r_reg(W52_IR2);
+        if (!ir2) {
+                w5200_irq = 0x00;
+                return -EAGAIN;  // No IRQs pending but w5200_irq was never cleared.
+        }
+        /* Return 1 socket at a time, lower socket # = higher priority
+         * If more than 1 socket is pending, w5200_irq will not be cleared.
+         */
+        for (i=0; i < W52_MAX_SOCKETS; i++) {
+                bit = 1 << i;
+                if ( (ir2 & bit) && sock < 0 ) {
+                        sock = i;
+                        w5200_irq = 0x00;
+                }
+                if ( (ir2 & bit) && sock >= 0 ) {
+                        //Multiple sockets pending IRQ
+                        w5200_irq = 0x01;
+                }
+        }
+        return sock;
+    } else {
+            //w5200_irq not set/
+    }
+    return -EAGAIN;  // No IRQ fired; nothing more to see here!
 }
 
 int wiznet_phystate()
 {
-	uint8_t phy;
+    uint8_t phy;
 
-	phy = wiznet_r_reg(W52_PHYSTATUS);
+    phy = wiznet_r_reg(W52_PHYSTATUS);
 
-	if ((phy & 0x20) == 0x20)
-		return 0;
-	return -ENETDOWN;
+    if ((phy & 0x20) == 0x20)
+        return 0;
+
+    return -ENETDOWN;
 }
 
 int wiznet_socket(int protocol)
 {
-	int i;
+    int i;
 
-	if (protocol == W52_SOCK_MR_PROTO_MACRAW || protocol == W52_SOCK_MR_PROTO_PPPOE) {
-		if (w52_sockets[0].mode) {
-			//requested but socket#0 already taken
-			return -EADDRINUSE;
-		}
-	}
+    if (protocol == W52_SOCK_MR_PROTO_MACRAW || protocol == W52_SOCK_MR_PROTO_PPPOE) {
+        if (w52_sockets[0].mode) {
+            //requested but socket#0 already taken
+            return -EADDRINUSE;
+        }
+    }
 
-	switch (protocol) {
-		case W52_SOCK_MR_PROTO_TCP:
-		case W52_SOCK_MR_PROTO_UDP:
-		case W52_SOCK_MR_PROTO_IPRAW:
-			for (i = W52_MAX_SOCKETS - 1; i >= 0; i--) {
-				if (w52_sockets[i].mode == 0x00) {
-					w52_sockets[i].mode = protocol & 0x0F;
-					w52_sockets[i].is_bind = 0;
-					w52_sockets[i].tx_wr = wiznet_r_sockreg16(i, W52_SOCK_TX_WRITEPTR);
-					w52_sockets[i].rx_rd = wiznet_r_sockreg16(i, W52_SOCK_RX_READPTR);
+    switch (protocol) {
+        case W52_SOCK_MR_PROTO_TCP:
+        case W52_SOCK_MR_PROTO_UDP:
+        case W52_SOCK_MR_PROTO_IPRAW:
+            for (i = W52_MAX_SOCKETS - 1; i >= 0; i--) {
+                if (w52_sockets[i].mode == 0x00) {
+                    w52_sockets[i].mode = protocol & 0x0F;
+                    w52_sockets[i].is_bind = 0;
+                    w52_sockets[i].tx_wr = wiznet_r_sockreg16(i, W52_SOCK_TX_WRITEPTR);
+                    w52_sockets[i].rx_rd = wiznet_r_sockreg16(i, W52_SOCK_RX_READPTR);
 
-					wiznet_w_sockreg(i, W52_SOCK_MR, w52_sockets[i].mode);
-					wiznet_w_command(i, W52_SOCK_CMD_CLOSE);
-					wiznet_w_sockreg(i, W52_SOCK_IMR, 0x1F);
-					wiznet_w_reg(W52_IMR, wiznet_r_reg(W52_IMR) | (1 << i));
-					return i;
-				}
-			}
-			break;
+                    wiznet_w_sockreg(i, W52_SOCK_MR, w52_sockets[i].mode);
+                    wiznet_w_command(i, W52_SOCK_CMD_CLOSE);
+                    wiznet_w_sockreg(i, W52_SOCK_IMR, 0x1F);
+                    wiznet_w_reg(W52_IMR, wiznet_r_reg(W52_IMR) | (1 << i));
+                    return i;
+                }
+            }
+            break;
 
-		case W52_SOCK_MR_PROTO_MACRAW:
-		case W52_SOCK_MR_PROTO_PPPOE:
-			w52_sockets[0].mode = protocol;
-			w52_sockets[0].is_bind = 0;
-			wiznet_w_sockreg(0, W52_SOCK_MR, w52_sockets[0].mode);
-			wiznet_w_command(0, W52_SOCK_CMD_CLOSE);
-			wiznet_w_sockreg(0, W52_SOCK_IMR, (protocol == W52_SOCK_MR_PROTO_MACRAW ? 0x1F : 0xFF));
-			wiznet_w_reg(W52_IMR2, (protocol == W52_SOCK_MR_PROTO_MACRAW ? 0x00 : 0xA0));
-			wiznet_w_reg(W52_IMR, wiznet_r_reg(W52_IMR) | 1);
-			w52_sockets[0].tx_wr = wiznet_r_sockreg16(0, W52_SOCK_TX_WRITEPTR);
-			w52_sockets[0].rx_rd = wiznet_r_sockreg16(0, W52_SOCK_RX_READPTR);
-			return 0;
-			break;
+        case W52_SOCK_MR_PROTO_MACRAW:
+        case W52_SOCK_MR_PROTO_PPPOE:
+            w52_sockets[0].mode = protocol;
+            w52_sockets[0].is_bind = 0;
+            wiznet_w_sockreg(0, W52_SOCK_MR, w52_sockets[0].mode);
+            wiznet_w_command(0, W52_SOCK_CMD_CLOSE);
+            wiznet_w_sockreg(0, W52_SOCK_IMR, (protocol == W52_SOCK_MR_PROTO_MACRAW ? 0x1F : 0xFF));
+            wiznet_w_reg(W52_IMR2, (protocol == W52_SOCK_MR_PROTO_MACRAW ? 0x00 : 0xA0));
+            wiznet_w_reg(W52_IMR, wiznet_r_reg(W52_IMR) | 1);
+            w52_sockets[0].tx_wr = wiznet_r_sockreg16(0, W52_SOCK_TX_WRITEPTR);
+            w52_sockets[0].rx_rd = wiznet_r_sockreg16(0, W52_SOCK_RX_READPTR);
+            return 0;
+            break;
 
-		default:
-			return -EPROTONOSUPPORT;
-	}
-	return -ENFILE;
+        default:
+                return -EPROTONOSUPPORT;
+    }
+    return -ENFILE;
 }
 
 int wiznet_close(int sockfd)
@@ -205,10 +202,6 @@ int wiznet_close(int sockfd)
 int wiznet_connect(int sockfd, uint16_t *addr, uint16_t dport)
 {
 	uint8_t sr, irq;
-
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_close()";
-	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
 		return -EBADF;
@@ -306,10 +299,6 @@ int wiznet_quickbind(int sockfd)
 {
 	uint8_t sr;
 
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_quickbind()";
-	#endif
-
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
 		return -EBADF;
 	}
@@ -348,18 +337,15 @@ int wiznet_bind(int sockfd, uint16_t srcport)
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
         
 	sr = wiznet_r_sockreg(sockfd, W52_SOCK_SR);
-	wiznet_debug5_printf("%s: Socket %d SR=%x\n", funcname, sr);
 
 	switch (w52_sockets[sockfd].mode) {
 		case W52_SOCK_MR_PROTO_TCP:
 		case W52_SOCK_MR_PROTO_UDP:
 			if (sr == W52_SOCK_SR_SOCK_ESTABLISHED || sr == W52_SOCK_SR_SOCK_SYNSENT) {
-				wiznet_debug4_printf("%s: Socket %d bind attempted when connection is %s\n", funcname, sockfd, (sr == W52_SOCK_SR_SOCK_ESTABLISHED ? "ESTABLISHED" : "SYN_SENT"));
 				return -EADDRINUSE;
 			}
 			if (sr != W52_SOCK_SR_SOCK_CLOSED)
@@ -408,7 +394,6 @@ int wiznet_bind(int sockfd, uint16_t srcport)
 			break;
 
 		default:
-			wiznet_debug4_printf("%s: Socket %d bind attempted with protocol = %u, not supported.\n", funcname, sockfd, w52_sockets[sockfd].mode);
 			return -EPROTONOSUPPORT;
 	}
 }
@@ -422,12 +407,10 @@ int wiznet_accept(int sockfd)
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
         
 	if (w52_sockets[sockfd].mode != W52_SOCK_MR_PROTO_TCP) {
-		wiznet_debug4_printf("%s: Attempted on socket %d with protocol = %u (TCP only)\n", funcname, sockfd, w52_sockets[sockfd].mode);
 		return -EPROTONOSUPPORT;
 	}
 
@@ -436,13 +419,11 @@ int wiznet_accept(int sockfd)
 		wiznet_w_sockreg(sockfd, W52_SOCK_IR, W52_SOCK_IR_CON);
 		w52_sockets[sockfd].tx_wr = wiznet_r_sockreg16(sockfd, W52_SOCK_TX_WRITEPTR);
 		w52_sockets[sockfd].rx_rd = wiznet_r_sockreg16(sockfd, W52_SOCK_RX_READPTR);
-		wiznet_debug5_printf("%s: Socket %d connection accepted, tx_wr/rx_rd loaded\n", funcname, sockfd);
 		// Established!
 		return 0;
 	}
 	sr = wiznet_r_sockreg(sockfd, W52_SOCK_SR);
 	if (sr == W52_SOCK_SR_SOCK_ESTABLISHED) {
-		wiznet_debug4_printf("%s: Socket %d accept attempted while live connection established!\n", funcname, sockfd);
 		return -EISCONN;
 	}
 
@@ -451,7 +432,6 @@ int wiznet_accept(int sockfd)
 		if (sr != W52_SOCK_SR_SOCK_LISTEN) {
 			if (w52_sockets[sockfd].is_bind) {
 				wiznet_quickbind(sockfd);  // Re-bind LISTEN port so new connections can come through.
-				wiznet_debug5_printf("%s: Socket %d accept failed (IRQ=%x, SR=%x); quickbinding\n", funcname, sockfd, irq, sr);
 			}
 		}
 	}
@@ -474,14 +454,12 @@ static int _wiznet_check_for_disconnect(int sockfd)
 		if (irq & (W52_SOCK_IR_DISCON | W52_SOCK_IR_TIMEOUT)) {
 			wiznet_w_command(sockfd, W52_SOCK_CMD_DISCON);
 			wiznet_w_sockreg(sockfd, W52_SOCK_IR, irq);
-			wiznet_debug5_printf("%s: Socket %d connection closed (%s)\n", funcname, sockfd, (irq & W52_SOCK_IR_TIMEOUT ? "TIMEOUT" : "DISCON"));
 		}
 		sr = wiznet_r_sockreg(sockfd, W52_SOCK_SR);
 		if (sr != W52_SOCK_SR_SOCK_ESTABLISHED) {
 			if (sr != W52_SOCK_SR_SOCK_LISTEN) {
 				if (w52_sockets[sockfd].is_bind) {
 					wiznet_quickbind(sockfd);  // Re-bind LISTEN port so new connections can come through.
-					wiznet_debug5_printf("%s: Socket %d not open but is_bind=1; quickbinding\n", funcname, sockfd);
 				}
 			}
 			return -ENOTCONN;
@@ -500,14 +478,12 @@ int wiznet_recv(int sockfd, void *buf, uint16_t sz, uint8_t do_recv)
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
 	rsr = wiznet_recvsize(sockfd);
 	if (rsr) {
 		if (rsr < sz) {
-			wiznet_debug5_printf("%s: Socket %d requested %u, only %u avail\n", funcname, sockfd, sz, rsr);
 			rsz = rsr;
 		} else {
 			rsz = sz;
@@ -517,11 +493,6 @@ int wiznet_recv(int sockfd, void *buf, uint16_t sz, uint8_t do_recv)
 		return rsz;
 	}
 
-	#if WIZNET_DEBUG > 3
-	ret = _wiznet_check_for_disconnect(sockfd, funcname);
-	#else
-	ret = _wiznet_check_for_disconnect(sockfd);
-	#endif
 	if (ret != 0)
 		return ret;
 
@@ -539,14 +510,12 @@ int wiznet_search_recv(int sockfd, void *buf, uint16_t sz, uint8_t searchchar, u
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
 	rsr = wiznet_recvsize(sockfd);
 	if (rsr) {
 		if (rsr < sz) {
-			wiznet_debug5_printf("%s: Socket %d requested %u, only %u avail\n", funcname, sockfd, sz, rsr);
 			rsz = rsr;
 		} else {
 			rsz = sz;
@@ -579,19 +548,16 @@ int wiznet_peek(int sockfd, uint16_t offset, void *buf, uint16_t sz)
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
 	rsr = wiznet_recvsize(sockfd);
 	if (rsr) {
 		if (rsr <= offset) {
-			wiznet_debug5_printf("%s: Socket %d attempted to peek beyond end (offset=%u, rsr=%u)\n", funcname, sockfd, offset, rsr);
 			return -EAGAIN;  // Not enough data to satisfy this request
 		}
 		if ( (rsr-offset) < sz ) {
 			rsz = rsr - offset;
-			wiznet_debug5_printf("%s: Socket %d rsz trimmed from %u to %u\n", funcname, sockfd, sz, rsz);
 		} else {
 			rsz = sz;
 		}
@@ -600,11 +566,9 @@ int wiznet_peek(int sockfd, uint16_t offset, void *buf, uint16_t sz)
 		return rsz;
 	}
 
-	#if WIZNET_DEBUG > 3
-	ret = _wiznet_check_for_disconnect(sockfd, funcname);
-	#else
+
 	ret = _wiznet_check_for_disconnect(sockfd);
-	#endif
+
 	if (ret != 0)
 		return ret;
 
@@ -622,7 +586,6 @@ int wiznet_flush(int sockfd, uint16_t sz, uint8_t do_recv)
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
@@ -630,7 +593,6 @@ int wiznet_flush(int sockfd, uint16_t sz, uint8_t do_recv)
 	if (rsr) {
 		if (rsr < sz) {
 			rsz = rsr;
-			wiznet_debug5_printf("%s: Socket %d requested %u, only %u avail\n", funcname, sockfd, sz, rsr);
 		} else {
 			rsz = sz;
 		}
@@ -639,11 +601,8 @@ int wiznet_flush(int sockfd, uint16_t sz, uint8_t do_recv)
 		return rsz;
 	}
 
-	#if WIZNET_DEBUG > 3
-	ret = _wiznet_check_for_disconnect(sockfd, funcname);
-	#else
-	ret = _wiznet_check_for_disconnect(sockfd);
-	#endif
+
+
 	if (ret != 0)
 		return ret;
 
@@ -657,12 +616,8 @@ int wiznet_recvfrom(int sockfd, void *buf, uint16_t sz, uint16_t *srcaddr, uint1
 	uint16_t rsz, rsr, tmpaddr[2];
 	uint8_t header[4];
 
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_recvfrom()";
-	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
@@ -670,43 +625,31 @@ int wiznet_recvfrom(int sockfd, void *buf, uint16_t sz, uint16_t *srcaddr, uint1
 		case W52_SOCK_MR_PROTO_UDP:
 			if (srcaddr != NULL) {
 				wiznet_ip_bin_r_rxbuf(sockfd, 0, 0, srcaddr);
-				wiznet_debug5_printf("%s: Socket %d UDP srcaddr = %u.%u.%u.%u; ", funcname,
-					srcaddr[0] >> 8, srcaddr[0] & 0xFF, srcaddr[1] >> 8, srcaddr[1] & 0xFF);
 			} else {
 				wiznet_ip_bin_r_rxbuf(sockfd, 0, 0, tmpaddr);
-				wiznet_debug5_printf("%s: Socket %d UDP srcaddr = %u.%u.%u.%u; ", funcname,
-					tmpaddr[0] >> 8, tmpaddr[0] & 0xFF, tmpaddr[1] >> 8, tmpaddr[1] & 0xFF);
 			}
 			wiznet_r_rxbuf(sockfd, 4, header, 0);
 			if (srcport != NULL)
 				*srcport = wiznet_ntohs(header);
 			rsr = wiznet_ntohs(header+2);
-			wiznet_debug5_printf("srcport = %u, pktsize = %u\n", wiznet_ntohs(header), rsr);
 			break;
 
 		case W52_SOCK_MR_PROTO_IPRAW:
 			if (srcaddr != NULL) {
 				wiznet_ip_bin_r_rxbuf(sockfd, 0, 0, srcaddr);
-				wiznet_debug5_printf("%s: Socket %d IP srcaddr = %u.%u.%u.%u; ", funcname,
-					srcaddr[0] >> 8, srcaddr[0] & 0xFF, srcaddr[1] >> 8, srcaddr[1] & 0xFF);
 			} else {
 				wiznet_ip_bin_r_rxbuf(sockfd, 0, 0, tmpaddr);
-				wiznet_debug5_printf("%s: Socket %d IP srcaddr = %u.%u.%u.%u; ", funcname,
-					tmpaddr[0] >> 8, tmpaddr[0] & 0xFF, tmpaddr[1] >> 8, tmpaddr[1] & 0xFF);
 			}
 			wiznet_r_rxbuf(sockfd, 2, header, 0);
 			rsr = wiznet_ntohs(header);
-			wiznet_debug5_printf("pktsize = %u\n", rsr);
 			break;
 
 		default:
-			wiznet_debug4_printf("%s: Socket %d attempted with protocol = %u (UDP, IPRAW only)\n", funcname, w52_sockets[sockfd].mode);
 			return -EPROTONOSUPPORT;
 	}
 
 	if (rsr) {
 		if (rsr < sz) {
-			wiznet_debug5_printf("%s: Socket %d requested %u, only %u avail\n", funcname, sockfd, sz, rsr);
 			rsz = rsr;
 		} else {
 			rsz = sz;
@@ -726,12 +669,7 @@ int wiznet_mac_recvfrom(void *buf, uint16_t sz, uint16_t *srcmac, uint16_t *dstm
 	uint16_t rsz, rsr;
 	int sockfd = 0;  // Makes copying/pasting my code easier
 
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_mac_recvfrom()";
-	#endif
-
 	if (w52_sockets[sockfd].mode != W52_SOCK_MR_PROTO_MACRAW) {
-		wiznet_debug5_printf("%s: Socket 0 mode = %u (MACRAW only)\n", funcname, w52_sockets[sockfd].mode);
 		return -EBADF;
 	}
 
@@ -742,15 +680,12 @@ int wiznet_mac_recvfrom(void *buf, uint16_t sz, uint16_t *srcmac, uint16_t *dstm
 		wiznet_mac_bin_r_rxbuf(sockfd, 0, 0, srcmac);
 		wiznet_r_rxbuf(sockfd, 2, header, 0);
 		*frametype = wiznet_ntohs(header);
-		wiznet_debug5_printf("%s: MAC preamble: Framesize=%u, SrcMAC=%x%x%x, DestMAC=%x%x%x, FrameType=%x\n", funcname, rsr
-			srcmac[0], srcmac[1], srcmac[2], dstmac[0], dstmac[1], dstmac[2], wiznet_ntohs(header));
 	}
 
 	rsr = wiznet_recvsize(sockfd);
 	if (rsr) {
 		if (rsr < sz) {
 			rsz = rsr;
-			wiznet_debug5_printf("%s: Socket %d requested %u, only %u avail\n", funcname, sockfd, sz, rsr);
 		} else {
 			rsz = sz;
 		}
@@ -781,7 +716,7 @@ int wiznet_txcommit(int sockfd)
 	do {
 		irq = wiznet_r_sockreg(sockfd, W52_SOCK_IR);
 		if (!irq && !w5200_irq)  // If other IRQs are waiting, we can't sleep here b/c the IRQ line won't get pulsed
-			__delay_cycles(1000);
+			delay_for_1000_nops();
 
 		if (irq & W52_SOCK_IR_SEND_OK) {
 			tx_rdring2 = wiznet_r_sockreg16(sockfd, W52_SOCK_TX_READPTR) & W52_SOCK_MEM_MASK;
@@ -798,10 +733,8 @@ int wiznet_txcommit(int sockfd)
 		if (irq & (W52_SOCK_IR_DISCON | W52_SOCK_IR_TIMEOUT)) {
 			wiznet_w_command(sockfd, W52_SOCK_CMD_DISCON);
 			wiznet_w_sockreg(sockfd, W52_SOCK_IR, irq);
-			wiznet_debug5_printf("%s: Socket %d closed (%s)\n", funcname, sockfd, (irq & W52_SOCK_IR_TIMEOUT ? "TIMEOUT" : "DISCON"));
 			if (w52_sockets[sockfd].is_bind) {
 				wiznet_quickbind(sockfd);
-				wiznet_debug5_printf("%s: Socket %d not open but is_bind=1; quickbinding\n", funcname, sockfd);
 			}
 			return (irq & W52_SOCK_IR_DISCON ? -ECONNABORTED : -ETIMEDOUT);
 		}
@@ -814,18 +747,12 @@ int wiznet_send(int sockfd, void *buf, uint16_t sz, uint8_t do_commit)
 	uint16_t fsr;
 	uint8_t irq, sr;
 
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_send()";
-	#endif
-
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 	
 	// Other datagram-based modes need to use sendto().
 	if (w52_sockets[sockfd].mode != W52_SOCK_MR_PROTO_TCP) {
-		wiznet_debug4_printf("%s: Attempted on socket %d with protocol = %u (TCP only)\n", funcname, sockfd, w52_sockets[sockfd].mode);
 		return -EPROTONOSUPPORT;
 	}
 
@@ -834,10 +761,8 @@ int wiznet_send(int sockfd, void *buf, uint16_t sz, uint8_t do_commit)
 	if (irq & (W52_SOCK_IR_DISCON | W52_SOCK_IR_TIMEOUT)) {
 		wiznet_w_command(sockfd, W52_SOCK_CMD_DISCON);
 		wiznet_w_sockreg(sockfd, W52_SOCK_IR, irq);
-		wiznet_debug5_printf("%s: Socket %d closed (%s)\n", funcname, sockfd, (irq & W52_SOCK_IR_TIMEOUT ? "TIMEOUT" : "DISCON"));
 		if (w52_sockets[sockfd].is_bind) {
 			wiznet_quickbind(sockfd);  // Re-bind LISTEN port so new connections can come through.
-			wiznet_debug5_printf("%s: Socket %d not open but is_bind=1; quickbinding\n", funcname, sockfd);
 		}
 		return (irq & W52_SOCK_IR_DISCON ? -ECONNABORTED : -ETIMEDOUT);
 	}
@@ -847,7 +772,6 @@ int wiznet_send(int sockfd, void *buf, uint16_t sz, uint8_t do_commit)
 		return -ENOTCONN;
 	fsr = wiznet_read_virtual_fsr(sockfd);
 	if (fsr < sz) {
-		wiznet_debug4_printf("%s: Socket %d attempting to write %u (TX free = %u)!\n", funcname, sockfd, sz, fsr);
 		return -ENFILE;  // Too much for the buffer!
 	}
 
@@ -867,12 +791,10 @@ int wiznet_sendto(int sockfd, void *buf, uint16_t sz, uint16_t *address, uint16_
 	#endif
 
 	if (sockfd < 0 || sockfd >= W52_MAX_SOCKETS) {
-		wiznet_debug4_printf("%s: Invalid socket %d specified\n", funcname, sockfd);
 		return -EBADF;
 	}
 
 	if (sz > W52_SOCK_MEM_SIZE) {
-		wiznet_debug4_printf("%s: Socket %d attempting to write more than TX buffer size!\n", funcname, sockfd);
 		return -ENFILE;  // Too much for the buffer!
 	}
 
@@ -882,8 +804,6 @@ int wiznet_sendto(int sockfd, void *buf, uint16_t sz, uint16_t *address, uint16_
 			if (address != NULL) {
 				wiznet_ip_bin_w_sockreg(sockfd, W52_SOCK_DESTIP, address);
 				wiznet_w_sockreg16(sockfd, W52_SOCK_DESTPORT, dport);
-				wiznet_debug5_printf("%s: Socket %d UDP dest = %u.%u.%u.%u:%u\n", funcname, sockfd,
-					address[0] >> 8, address[0] & 0xFF, address[1] >> 8, address[1] & 0xFF, dport);
 			}
 			wiznet_w_txbuf(sockfd, sz, buf);
 			if (do_commit)
@@ -892,7 +812,6 @@ int wiznet_sendto(int sockfd, void *buf, uint16_t sz, uint16_t *address, uint16_
 	}
 
 	// Not appropriate for TCP.
-	wiznet_debug4_printf("%s: Socket %d attempted with protocol = %u (UDP, IPRAW only)\n", funcname, sockfd, w52_sockets[sockfd].mode);
 	return -EPROTONOSUPPORT;
 }
 
@@ -907,7 +826,6 @@ int wiznet_mac_sendto(void *buf, uint16_t sz, uint16_t *dstmac, uint16_t framety
 	#endif
 
 	if (w52_sockets[sockfd].mode != W52_SOCK_MR_PROTO_MACRAW) {
-		wiznet_debug4_printf("%s: Called while socket 0 not configured as MACRAW (currently %u)\n", funcname, w52_sockets[sockfd].mode);
 		return -EBADF;
 	}
 	
@@ -918,7 +836,6 @@ int wiznet_mac_sendto(void *buf, uint16_t sz, uint16_t *dstmac, uint16_t framety
 		else
 			wiznet_htons(sz+14, header);
 		wiznet_w_txbuf(sockfd, 2, header);  // TX size
-		wiznet_debug5_printf("%s: Preamble write TXsize=%u, ", funcname, wiznet_ntohs(header));
 		// Dest MAC
 		wiznet_mac_bin_w_txbuf(sockfd, dstmac);
 		// Pre-fill SRCMAC to use our MAC address; assumes we're not trying to spoof anything ;)
@@ -927,10 +844,6 @@ int wiznet_mac_sendto(void *buf, uint16_t sz, uint16_t *dstmac, uint16_t framety
 		// Ethernet FRAME TYPE
 		wiznet_htons(frametype, header);
 		wiznet_w_txbuf(sockfd, 2, header);
-		wiznet_debug5_printf("SrcMAC=%x%x%x, DestMAC=%x%x%x, FrameType=%x\n",
-			ourmac[0] >> 8, ourmac[0] & 0xFF, ourmac[1] >> 8, ourmac[1] & 0xFF, ourmac[2] >> 8, ourmac[2] & 0xFF,
-			dstmac[0] >> 8, dstmac[0] & 0xFF, dstmac[1] >> 8, dstmac[1] & 0xFF, dstmac[2] >> 8, dstmac[2] & 0xFF,
-			frametype);
 	}
 
 	// Data payload
@@ -945,10 +858,6 @@ int wiznet_init()
 {
 	uint16_t i, ipzero[2];
 
-	#if WIZNET_DEBUG > 3
-	const char *funcname = "wiznet_init()";
-	#endif
-
 	wiznet_io_init();
 
 	i = wiznet_r_reg(W52_VERSIONR);
@@ -957,7 +866,7 @@ int wiznet_init()
 
 	wiznet_w_reg(W52_MR, 0x80);
 	while (wiznet_r_reg(W52_MR) & 0x80)
-		__delay_cycles(10000);
+		delay_for_1000_nops();
 
 	// Disable sockets from expressing IRQ on pin
 	wiznet_w_reg(W52_IMR, 0x00);

@@ -23,7 +23,7 @@ void delay_for_1000_nops ()
 void delay_micros (uint16_t n)
 {
     const uint16_t function_overhead = 6;
-    const uint32_t pr_t;
+    uint32_t pr_t;
 
 
 

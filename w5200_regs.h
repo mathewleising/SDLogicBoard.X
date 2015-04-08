@@ -220,10 +220,6 @@
 #define W52_SOCK_SR_SOCK_LAST_ACK 0x1D
 #define W52_SOCK_SR_SOCK_ARP 0x01
 
-/* Convenient lookup table with descriptive strings for the states
- * (mostly adapted from Linux kernel's include/net/tcp_states.h)
- * Actual definitions inside w5200.c
- */
 #define W52_TCP_STATE_COUNT 10
 
 extern const char *w52_tcp_state[];

@@ -27,7 +27,7 @@ void wiznet_io_init();
 
 /* Register I/O primitives */
 void wiznet_w_reg(uint16_t, uint8_t);
-uint8_t wiznet_r_reg(uint8_t);
+uint8_t wiznet_r_reg(uint16_t);
 void wiznet_w_reg16(uint16_t, uint16_t);
 uint16_t wiznet_r_reg16(uint16_t);
 void wiznet_w_set(uint16_t, uint16_t, uint8_t);

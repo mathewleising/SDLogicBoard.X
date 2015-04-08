@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "w5200_io.h"
+#include "spi.h"
 #include "delay.h"
 
 #define W52_INT4R RPC0
@@ -15,25 +16,6 @@
 
 #define W52_CS_LOW mPORTBClearBits(W52_CS_B3);
 #define W52_CS_HIGH mPORTBSetBits(W52_CS_B3);
-#define CLOSE_SPI SpiChnClose(CHN);
-
-void wiznet_hrd_rst()
-{
-    mPORTBClearBits(W52_RST_B2);
-    delay_micros(5);
-    mPORTBSetBits(W52_RST_B2);
-    delay_millis(200);
-}
-
-void spi_open(SpiOpenFlags mode)
-{
-        SpiOpenFlags oFlags=SPI_OPEN_SMP_END //167? confusing
-            |SPI_OPEN_ON
-            |SPI_OPEN_MSTEN;
-
-    // Open SPI module, use SPI channel 1, use flags set above, 20 MHz
-    SpiChnOpen(CHN, oFlags|mode, 2);
-}
 
 void wiznet_io_init()
 {
@@ -60,9 +42,12 @@ void wiznet_io_init()
     // Don't know if I need to do this...
     temp = mPORTCRead();
 
+
+
     INTSetVectorPriority(INT_EXTERNAL_4_VECTOR, INT_PRIORITY_LEVEL_3);
     INTSetVectorSubPriority(INT_EXTERNAL_4_VECTOR, INT_SUB_PRIORITY_LEVEL_0);
     INTEnable(INT_INT4, INT_ENABLED);
+
 
 
     PPSInput(3,SDI2, W52_SDI2);  //Assign SDI1 to pin RA1
@@ -191,8 +176,8 @@ void wiznet_r_buf(uint16_t addr, uint16_t len, void *buf)
     SpiChnPutC(CHN, (W52_SPI_OPCODE_READ >> 8) | (len >> 8) );
     SpiChnPutC(CHN, len & 0xFF);
     for (i=0; i < len; i++) {
-
-        bufptr[i] = spi_transfer(0xFF);
+            SpiChnPutC(CHN, 0xFF);
+            bufptr[i] = SpiChnGetC(CHN);
     }
 
     W52_CS_HIGH;
@@ -201,31 +186,32 @@ void wiznet_r_buf(uint16_t addr, uint16_t len, void *buf)
 
 uint16_t wiznet_search_r_buf(uint16_t addr, uint16_t len, void *buf, uint8_t searchchar)
 {
-	uint8_t *bufptr = (uint8_t *)buf, keep_reading = 1;
-	uint16_t i, ttl=0;
+    uint8_t *bufptr = (uint8_t *)buf, keep_reading = 1;
+    uint16_t i, ttl=0;
 
-	if (!len) {
-		return 0;
-	}
+    if (!len) {
+        return 0;
+    }
 
-	spi_open(SPI_OPEN_MODE8);
-	W52_CS_LOW;
-	spi_transfer(addr >> 8);
-	spi_transfer(addr & 0xFF);
-	spi_transfer( (W52_SPI_OPCODE_READ >> 8) | (len >> 8) );
-	spi_transfer(len & 0xFF);
-	for (i=0; i < len; i++) {
-		if (keep_reading) {
-			bufptr[i] = spi_transfer(0xFF);
-			ttl++;
-			if (bufptr[i] == searchchar)
-				keep_reading = 0;
-		} else {
-			spi_transfer(0xFF);  // Drain remaining bytes (W5200 doesn't like abrupt cessation of SPI transfers)
-		}
-	}
-	W52_CS_HIGH;
-	CLOSE_SPI;
+    spi_open(SPI_OPEN_MODE8);
+    W52_CS_LOW;
+    SpiChnPutC(CHN, addr >> 8);
+    SpiChnPutC(CHN, addr & 0xFF);
+    SpiChnPutC(CHN,  (W52_SPI_OPCODE_READ >> 8) | (len >> 8) );
+    SpiChnPutC(CHN, len & 0xFF);
+    for (i=0; i < len; i++) {
+        if (keep_reading) {
+            SpiChnPutC(CHN, 0xFF);
+            bufptr[i] = SpiChnGetC(CHN);
+            ttl++;
+            if (bufptr[i] == searchchar)
+                keep_reading = 0;
+        } else {
+            SpiChnPutC(CHN, 0xFF);  // Drain remaining bytes (W5200 doesn't like abrupt cessation of SPI transfers)
+        }
+    }
+    W52_CS_HIGH;
+    CLOSE_SPI;
 
-	return ttl;
+    return ttl;
 }

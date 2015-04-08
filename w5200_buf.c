@@ -15,7 +15,6 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <msp430.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
