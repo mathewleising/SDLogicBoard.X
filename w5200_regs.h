@@ -47,6 +47,9 @@
 
 #define W52_RCR 0x0019
 
+#define W52_RMSR 0x001A
+#define W52_TMSR 0x001B
+
 #define W52_PPPOE_AUTHTYPE 0x001C
 #define W52_PATR0 0x001C
 #define W52_PATR1 0x001D
@@ -56,6 +59,9 @@
 
 #define W52_PTIMER 0x0028
 #define W52_PMAGIC 0x0029
+
+#define W52_UIPR 0x002A
+#define W52_UPORT 0x002E
 
 #define W52_INTLEVEL0 0x0030
 #define W52_INTLEVEL1 0x0031

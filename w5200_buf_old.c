@@ -36,14 +36,14 @@ void wiznet_w_txbuf(int sockfd, uint16_t sz, void *buf)
 	j = W52_SOCK_MEM_MASK - i;
 	if (j < sz) {  // Writing would overflow the buffer
 		real_ptr = W52_TXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-		wiznet_w_buf(real_ptr, j, bufptr);
+		wiznet_w_buff(real_ptr, j, bufptr);
 		tx_wr += j;
 		sz -= j;
 		bufptr += j;
 		i = 0;
 	}
 	real_ptr = W52_TXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-	wiznet_w_buf(real_ptr, sz, bufptr);
+	wiznet_w_buff(real_ptr, sz, bufptr);
 	tx_wr += sz;
 	w52_sockets[sockfd].tx_wr = tx_wr;
 	wiznet_w_sockreg16(sockfd, W52_SOCK_TX_WRITEPTR, tx_wr);
@@ -86,14 +86,14 @@ void wiznet_r_rxbuf(int sockfd, uint16_t sz, void *buf, uint8_t do_recv_cmd)
 	j = W52_SOCK_MEM_SIZE - i;
 	if (j < sz) {  // Reading requires wrap-around
 		real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-		wiznet_r_buf(real_ptr, j, bufptr);
+		wiznet_r_buff(real_ptr, j, bufptr);
 		rx_rd += j;
 		sz -= j;
 		bufptr += j;
 		i = 0;
 	}
 	real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-	wiznet_r_buf(real_ptr, sz, bufptr);
+	wiznet_r_buff(real_ptr, sz, bufptr);
 	rx_rd += sz;
 	wiznet_w_sockreg16(sockfd, W52_SOCK_RX_READPTR, rx_rd);
 
@@ -119,14 +119,14 @@ void wiznet_peek_rxbuf(int sockfd, uint16_t offset, uint16_t sz, void *buf)
 	j = W52_SOCK_MEM_SIZE - i;
 	if (j < sz) {  // Reading requires wrap-around
 		real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-		wiznet_r_buf(real_ptr, j, bufptr);
+		wiznet_r_buff(real_ptr, j, bufptr);
 		rx_rd += j;
 		sz -= j;
 		bufptr += j;
 		i = 0;
 	}
 	real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-	wiznet_r_buf(real_ptr, sz, bufptr);
+	wiznet_r_buff(real_ptr, sz, bufptr);
 }
 
 void wiznet_flush_rxbuf(int sockfd, uint16_t fsz, uint8_t do_recv_cmd)
@@ -148,45 +148,6 @@ void wiznet_flush_rxbuf(int sockfd, uint16_t fsz, uint8_t do_recv_cmd)
 	} else {
 		w52_sockets[sockfd].rx_rd = rx_rd;
 	}
-}
-
-uint16_t wiznet_search_r_rxbuf(int sockfd, uint16_t sz, void *buf, uint8_t searchchar, uint8_t do_recv_cmd)
-{
-	uint16_t rx_rd, real_ptr, i, j, retlen, total=0;
-	uint8_t *bufptr = (uint8_t *)buf;
-
-	if (sz > W52_SOCK_MEM_SIZE)
-		return 0;
-
-	rx_rd = w52_sockets[sockfd].rx_rd;
-	i = rx_rd & W52_SOCK_MEM_MASK;
-	retlen = j = W52_SOCK_MEM_SIZE - i;
-	if (j < sz) {  // Reading requires wrap-around
-		real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-		retlen = wiznet_search_r_buf(real_ptr, j, bufptr, searchchar);
-		rx_rd += retlen;
-		sz -= retlen;
-		bufptr += retlen;
-        total += retlen;
-		i = 0;
-	}
-	if (retlen == j) {  // searchchar wasn't found during initial pre-wraparound read
-		real_ptr = W52_RXMEM_BASE + W52_SOCK_MEM_SIZE * sockfd + i;
-		retlen = wiznet_search_r_buf(real_ptr, sz, bufptr, searchchar);
-		rx_rd += retlen;
-		total += retlen;
-	}
-	wiznet_w_sockreg16(sockfd, W52_SOCK_RX_READPTR, rx_rd);
-
-	if (do_recv_cmd) {
-		wiznet_w_sockreg(sockfd, W52_SOCK_IR, W52_SOCK_IR_RECV);  // Clear RECV IRQ
-		wiznet_w_sockreg(sockfd, W52_SOCK_CR, W52_SOCK_CMD_RECV); // Let more data in!
-		w52_sockets[sockfd].rx_rd = wiznet_r_sockreg16(sockfd, W52_SOCK_RX_READPTR);
-	} else {
-		w52_sockets[sockfd].rx_rd = rx_rd;
-	}
-
-    return total;
 }
 
 uint16_t wiznet_recvsize(int sockfd)

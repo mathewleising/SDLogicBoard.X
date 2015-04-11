@@ -23,27 +23,12 @@
 #include <stdint.h>
 #include "w5200_regs.h"
 
-/* User configuration - SPI driver, CS pin */
-
-#define W52_PWDN_A8 BIT_8
-
-#define W52_RST_B2 BIT_2
-#define W52_CS_B3 BIT_3
-
-#define W52_INT_C0 BIT_0
-
-#define W52_PORTA W52_PWDN_A8
-#define W52_PORTB (W52_RST_B2 | W52_CS_B3)
-#define W52_PORTC W52_INT_C0
-
 /* Custom statements used to temporarily set SPI speed (and restore afterwards)
  * The W5200 supports up to 33MHz SPI guaranteed (80MHz if you can manage the crosstalk).
  * It is advantageous to set SMCLK to the full speed of the DCO if possible.
  * Use this to minimize the SPI bitrate divider and restore it as needed (in case other
  * attached devices require lower SPI speeds)
  */
-#define W52_SPI_SET ;
-#define W52_SPI_UNSET ;
 
 /* Base port used as source-port for outbound TCP connections */
 #define W52_TCP_SRCPORT_BASE 40000
@@ -66,25 +51,18 @@ extern uint16_t w52_portoffset;  // User-settable offset to add to the source po
 
 /* End user configuration */
 
-/* IRQ handler flag updated by user's Interrupt Service Routine for the IRQ pin */
-extern volatile uint8_t w5200_irq;
-
-//// Macros for manipulating the SPI chip select line */
-//#define W52_CS_LOW W52_CHIPSELECT_PORTOUT &= ~W52_CHIPSELECT_PORTBIT
-//#define W52_CS_HIGH W52_CHIPSELECT_PORTOUT |= W52_CHIPSELECT_PORTBIT
-
 // Structure for holding socket information
 #define W52_MAX_SOCKETS 8
 
-typedef struct {
-	uint8_t mode;
-	uint8_t srcport_idx;
-	uint8_t is_bind;
-	uint16_t tx_wr;
-	uint16_t rx_rd;
-} WIZNETSocketState;
-
-extern WIZNETSocketState w52_sockets[W52_MAX_SOCKETS];
+//typedef struct {
+//	uint8_t mode;
+//	uint8_t srcport_idx;
+//	uint8_t is_bind;
+//	uint16_t tx_wr;
+//	uint16_t rx_rd;
+//} WIZNETSocketState;
+//
+//extern WIZNETSocketState w52_sockets[W52_MAX_SOCKETS];
 
 /* Relevant ERRNO values */
 #define ENETDOWN 100

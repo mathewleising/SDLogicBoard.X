@@ -12,7 +12,6 @@
 extern "C" {
 #endif
 
-#include <plib.h>
 #include <stdint.h>
 #include "config.h"
 

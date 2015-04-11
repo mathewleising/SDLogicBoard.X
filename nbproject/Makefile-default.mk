@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=w5200_buf.c w5200_io.c main.c delay.c w5200_sock.c
+SOURCEFILES_QUOTED_IF_SPACED=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/w5200_buf.o ${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/w5200_sock.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/w5200_buf.o.d ${OBJECTDIR}/w5200_io.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/delay.o.d ${OBJECTDIR}/w5200_sock.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/w5200_io.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/delay.o.d ${OBJECTDIR}/spi.o.d ${OBJECTDIR}/w5200.o.d ${OBJECTDIR}/w5200_sock.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/w5200_buf.o ${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/w5200_sock.o
+OBJECTFILES=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o
 
 # Source Files
-SOURCEFILES=w5200_buf.c w5200_io.c main.c delay.c w5200_sock.c
+SOURCEFILES=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c
 
 
 CFLAGS=
@@ -94,12 +94,6 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compile
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/w5200_buf.o: w5200_buf.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/w5200_buf.o.d 
-	@${RM} ${OBJECTDIR}/w5200_buf.o 
-	@${FIXDEPS} "${OBJECTDIR}/w5200_buf.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200_buf.o.d" -o ${OBJECTDIR}/w5200_buf.o w5200_buf.c   
-	
 ${OBJECTDIR}/w5200_io.o: w5200_io.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/w5200_io.o.d 
@@ -118,6 +112,18 @@ ${OBJECTDIR}/delay.o: delay.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/delay.o 
 	@${FIXDEPS} "${OBJECTDIR}/delay.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/delay.o.d" -o ${OBJECTDIR}/delay.o delay.c   
 	
+${OBJECTDIR}/spi.o: spi.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/spi.o.d 
+	@${RM} ${OBJECTDIR}/spi.o 
+	@${FIXDEPS} "${OBJECTDIR}/spi.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/spi.o.d" -o ${OBJECTDIR}/spi.o spi.c   
+	
+${OBJECTDIR}/w5200.o: w5200.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/w5200.o.d 
+	@${RM} ${OBJECTDIR}/w5200.o 
+	@${FIXDEPS} "${OBJECTDIR}/w5200.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200.o.d" -o ${OBJECTDIR}/w5200.o w5200.c   
+	
 ${OBJECTDIR}/w5200_sock.o: w5200_sock.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/w5200_sock.o.d 
@@ -125,12 +131,6 @@ ${OBJECTDIR}/w5200_sock.o: w5200_sock.c  nbproject/Makefile-${CND_CONF}.mk
 	@${FIXDEPS} "${OBJECTDIR}/w5200_sock.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200_sock.o.d" -o ${OBJECTDIR}/w5200_sock.o w5200_sock.c   
 	
 else
-${OBJECTDIR}/w5200_buf.o: w5200_buf.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/w5200_buf.o.d 
-	@${RM} ${OBJECTDIR}/w5200_buf.o 
-	@${FIXDEPS} "${OBJECTDIR}/w5200_buf.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200_buf.o.d" -o ${OBJECTDIR}/w5200_buf.o w5200_buf.c   
-	
 ${OBJECTDIR}/w5200_io.o: w5200_io.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/w5200_io.o.d 
@@ -148,6 +148,18 @@ ${OBJECTDIR}/delay.o: delay.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/delay.o.d 
 	@${RM} ${OBJECTDIR}/delay.o 
 	@${FIXDEPS} "${OBJECTDIR}/delay.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/delay.o.d" -o ${OBJECTDIR}/delay.o delay.c   
+	
+${OBJECTDIR}/spi.o: spi.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/spi.o.d 
+	@${RM} ${OBJECTDIR}/spi.o 
+	@${FIXDEPS} "${OBJECTDIR}/spi.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/spi.o.d" -o ${OBJECTDIR}/spi.o spi.c   
+	
+${OBJECTDIR}/w5200.o: w5200.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/w5200.o.d 
+	@${RM} ${OBJECTDIR}/w5200.o 
+	@${FIXDEPS} "${OBJECTDIR}/w5200.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200.o.d" -o ${OBJECTDIR}/w5200.o w5200.c   
 	
 ${OBJECTDIR}/w5200_sock.o: w5200_sock.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 

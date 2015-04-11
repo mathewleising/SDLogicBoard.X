@@ -23,9 +23,6 @@ void delay_for_1000_nops ()
 void delay_micros (uint16_t n)
 {
     const uint16_t function_overhead = 6;
-    uint32_t pr_t;
-
-
 
     while (n > 1000)  // To avoid timer overflow
     {
@@ -35,14 +32,13 @@ void delay_micros (uint16_t n)
 
     if (n > function_overhead)
     {
-        mT2ClearIntFlag();
+        T2CONCLR = 0xFFFFFFFF;
+        IFS0CLR = 0x00000200;
+        TMR2 = 0;
+        PR2 = (n - function_overhead) * (PBCLK_FREQUENCY / 1000) / 1000;
+        T2CONSET = 0x00008000;
 
-        pr_t = (n - function_overhead) * (PBCLK_FREQUENCY / 1000) / 1000;
-        // May need | T1_PS_1_x
-        OpenTimer2(T2_ON, pr_t);
-
-
-        while (! mT2GetIntFlag())  // Wait until overflow flag is set
+        while (!IFS0bits.T2IF)  // Wait until overflow flag is set
             ;
     }
 }
