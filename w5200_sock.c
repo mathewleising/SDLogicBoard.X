@@ -6,19 +6,6 @@
 #include "w5200_io.h"
 #include "w5200_sock.h"
 
-/* Default IPs and utility subnets */
-const uint16_t w52_const_subnet_classA[2] = {0xFF00, 0x0000};
-const uint16_t w52_const_subnet_classB[2] = {0xFFFF, 0x0000};
-const uint16_t w52_const_subnet_classC[2] = {0xFFFF, 0xFF00};
-const uint16_t w52_const_ip_default[2] = {0xA980, 0x8082};  // 169.128.128.130
-const uint16_t w52_const_mac_default[3] = {0x5452, 0x0000, 0xF801};  // 54:52:00:00:F8:01 ... sounds random enough
-
-uint8_t ip_addr[4] = {0x1F,0x91,0x1F,0x91};
-//Use IANA recommended ephemeral port range 49152-65535
-#define DST_PORT 0xC350
-/* IRQ handler flag */
-volatile uint8_t w5200_irq;
-uint16_t w52_portoffset;
 
 /* TCP state descriptions */
 const char * wiznet_tcp_state[] = {
@@ -60,7 +47,7 @@ int wiznet_sockets() {
         if (s == W52_SOCK_SR_SOCK_CLOSED || s == W52_SOCK_SR_SOCK_FIN_WAIT) {
             write_SnMR(i, W52_SOCK_MR_PROTO_UDP);
             write_SnPORT(i, i);
-            write_SnDIPR(i,ip_addr);
+            write_SnDIPR(i,dest_ip);
             write_SnDPORT(i, DST_PORT);
             
 //            // dst_mask is offset address
