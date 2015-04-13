@@ -34,26 +34,29 @@ const uint8_t wiznet_tcp_state_idx[] = {
 
 /* Open socket information */
 typedef struct {
-    uint16_t dst_mask;
-    uint16_t dst_ptr;
+    uint16_t tx_size;
+    uint16_t dst_base_ptr;
+    uint16_t dst_write_ptr;
 } WIZNETSocketState;
 
 WIZNETSocketState w52_sockets[W52_MAX_SOCKETS];
+uint16_t current_sock; // 0-7
 
-int wiznet_sockets() {
+int init_sockets() {
+    current_sock = 0;
     uint16_t i;
     for (i = 0; i < W52_MAX_SOCKETS; i++) {
         uint16_t s = read_SnSR(i);
         if (s == W52_SOCK_SR_SOCK_CLOSED || s == W52_SOCK_SR_SOCK_FIN_WAIT) {
             write_SnMR(i, W52_SOCK_MR_PROTO_UDP);
             write_SnPORT(i, i);
-            write_SnDIPR(i,dest_ip);
+            write_SnDIPR(i, dest_ip);
             write_SnDPORT(i, DST_PORT);
-            
-//            // dst_mask is offset address
-//            w52_sockets[i].dst_mask = (read_SnTX_WR(i) & gSn_TX_MASK);
-//            // dst_ptr is physical start address
-//            w52_sockets[i].dst_ptr = gSn_TX_BASE + w52_sockets[i].dst_mask;
+            // May need to implement this... write_SnIMR();
+
+            w52_sockets[i].tx_size = read_SnTX_FSR(i);
+            w52_sockets[i].dst_base_ptr = read_SnTX_WR(i);
+            w52_sockets[i].dst_write_ptr = read_SnTX_RD(i);
 
             exec_cmdSn(i, W52_SOCK_CMD_OPEN);
         } else {
@@ -62,6 +65,8 @@ int wiznet_sockets() {
         }
     }
 }
+
+
 
 
 void exec_cmdSn(uint16_t s, uint16_t _cmd) {

@@ -23,20 +23,20 @@ extern const char *wiznet_tcp_state[10];
 extern const uint8_t wiznet_tcp_state_idx[10];
 
 /* Functions */
-int wiznet_irq_getsocket();
-#define wiznet_w_command(sock, cmdval) wiznet_w_sockreg(sock, W52_SOCK_CR, cmdval)
-int wiznet_phystate();
+//int wiznet_irq_getsocket();
+//#define wiznet_w_command(sock, cmdval) wiznet_w_sockreg(sock, W52_SOCK_CR, cmdval)
+//int wiznet_phystate();
 
-int wiznet_sockets(void);
-int wiznet_close(int);
+int init_sockets(void);
+//int wiznet_close(int);
 int wiznet_txcommit(int);
 int wiznet_send(int, void *, uint16_t, uint8_t);
 
 // Ethernet MACRAW I/O
-int wiznet_mac_recvfrom(void *, uint16_t, uint16_t *, uint16_t *, uint16_t *, uint8_t, uint8_t);
-int wiznet_mac_sendto(void *, uint16_t, uint16_t *, uint16_t, uint16_t, uint8_t, uint8_t);
+//int wiznet_mac_recvfrom(void *, uint16_t, uint16_t *, uint16_t *, uint16_t *, uint8_t, uint8_t);
+//int wiznet_mac_sendto(void *, uint16_t, uint16_t *, uint16_t, uint16_t, uint8_t, uint8_t);
 
-int wiznet_init();
+//int wiznet_init();
 
 #ifdef	__cplusplus
 }
