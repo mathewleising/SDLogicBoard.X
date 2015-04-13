@@ -130,7 +130,7 @@ void sysyem_initialize(void)
     LED2_G_ON;    
     
     // Init devices before turning on
-    
+    w5200_init();
     
     // Step 4: Enable Interrupts
     IEC0SET = 0b00000000100001000010000100000000;

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "w5200_config.h"
 #include "w5200.h"
 #include "w5200_regs.h"
 #include "w5200_io.h"
@@ -32,7 +33,10 @@ void w5200_init(void)
     hard_reset();
 
     // Configure
-    
+    write_MR(MR_CONF);
+    write_SHAR(w52_const_mac_default);
+    write_SIPR(w52_const_ip_default);
+    write_IMR(IMR_CONF);
 }
 
 int w5200_buff(int16_t data)

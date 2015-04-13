@@ -64,6 +64,23 @@ extern uint16_t w52_portoffset;  // User-settable offset to add to the source po
 //
 //extern WIZNETSocketState w52_sockets[W52_MAX_SOCKETS];
 
+
+/* Default IPs and utility subnets */
+#define MR_CONF 0x00
+#define IMR_CONF 0x00
+const uint8_t w52_const_subnet_classA[2] = {0xFF00, 0x0000};
+const uint8_t w52_const_subnet_classB[2] = {0xFFFF, 0x0000};
+const uint8_t w52_const_subnet_classC[2] = {0xFFFF, 0xFF00};
+const uint8_t w52_const_ip_default[2] = {0xA980, 0x8082};  // 169.128.128.130
+const uint8_t w52_const_mac_default[3] = {0x54, 0x52, 0x00, 0x00, 0xF8, 0x01};  // 54:52:00:00:F8:01 ... sounds random enough
+
+uint8_t dest_ip[4] = {0x1F,0x91,0x1F,0x91};
+//Use IANA recommended ephemeral port range 49152-65535
+#define DST_PORT 0xC350
+
+
+
+
 /* Relevant ERRNO values */
 #define ENETDOWN 100
 #define EBADF 9
@@ -85,10 +102,5 @@ extern uint16_t w52_portoffset;  // User-settable offset to add to the source po
 #define EINPROGRESS 115
 #define EISCONN 106
 #define EAGAIN 11
-
-
-
-
-
 
 #endif
