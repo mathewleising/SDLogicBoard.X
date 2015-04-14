@@ -39,15 +39,17 @@ extern "C" {
 #define ETH_INT 0b0110
 #define ADC_FLT_INT 0b0101
 #define ADC_OFLW_INT 0b0100
+
 #define SDI1 0b0011
 #define SDO1 0b0011
-#define SDI2 0b0111
+
+#define SDI2 0b0110
 #define SDO2 0b0100
 
 // May not need any inputs (all are pph)
 #define PORTA_CONFIG TRISA = 0x0000
 #define PORTB_CONFIG TRISB = 0x0A00 // 0x0000 PPS Inputs
-#define PORTC_CONFIG TRISC = 0x01C9 // 0x0080 PPS Inputs
+#define PORTC_CONFIG TRISC = 0x01C3 // 0x0080 PPS Inputs
 
 // Output Ports
 #define LED1_R_ON LATBbits.LATB7 = 1

@@ -8,6 +8,11 @@
 //bit 6, CKP: Clock Polarity Select bit
 //bit 5, MSTEN: Master Mode Enable bit
 
+#define SPI1_8 SPI1CON = 0x8020
+#define SPI1_16 SPI1CON = 0x8420
+#define SPI2_8 SPI2CON = 0x8120
+#define SPI2_16 SPI2CON = 0x8520
+
 #define SPI1_READY (SPI1STAT & 0x0001)
 #define SPI2_READY (SPI2STAT & 0x0001)
 
@@ -19,7 +24,7 @@ void spi_init ()
     RPB13R = SDO1;    
     
     SDI2R = SDI2;
-    RPC1R = SDO2;
+    RPC3R = SDO2;
     
     SPI1CON = 0; // Stops and resets the SPI1.
     rData=SPI1BUF; // clears the receive buffer
@@ -30,6 +35,8 @@ void spi_init ()
     rData=SPI2BUF; // clears the receive buffer
     SPI2BRG=0x00; // use FPB/2 clock frequency
     SPI2STATCLR=0x40; // clear the Overflow
+
+    SPI2_8;
 }
 
 uint8_t spi1_8(uint8_t data)
@@ -54,8 +61,16 @@ uint8_t spi2_8(uint8_t data)
 }
 
 uint16_t spi2_16(uint16_t data)
-{
-    SPI2BUF = data;
+{   
+    uint16_t tmp = 0;
+
+    SPI2BUF = data >> 8;
     while (!SPI2_READY);  // wait until SPI transmission complete
-    return SPI2BUF;
+    tmp = SPI2BUF << 8;
+
+    SPI2BUF = data & 0xFF;
+    while (!SPI2_READY);  // wait until SPI transmission complete
+    tmp = tmp | (SPI2BUF & 0xFF);
+
+    return tmp;
 }

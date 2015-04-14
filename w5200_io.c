@@ -9,16 +9,11 @@
 #define W52_SDO2 RPC1
 #define CHN SPI_CHANNEL1
 
-#define SPI8_MODE SPI2_8
-#define SPI16_MODE SPI2_16
-
 #define SPI8(data) spi2_8(data)
 #define SPI16(data) spi2_16(data)
 
 void wiznet_w_reg(uint16_t addr, uint8_t val)
 {
-    SPI8_MODE;
-
     W5200_CS_START;
     SPI8(addr >> 8);
     SPI8(addr & 0xFF);
@@ -30,15 +25,14 @@ void wiznet_w_reg(uint16_t addr, uint8_t val)
 
 uint8_t wiznet_r_reg(uint16_t addr)
 {
-    SPI8_MODE;
     uint8_t val;
 
     W5200_CS_START;
     SPI8(addr >> 8);
     SPI8(addr & 0xFF);
-    SPI8(W52_SPI_OPCODE_WRITE >> 8);
+    SPI8(W52_SPI_OPCODE_READ >> 8);
     SPI8(0x01);
-    val = SPI8(0xFF);
+    val = SPI8(0x00);
     W5200_CS_STOP;
     
     return val;
@@ -46,24 +40,21 @@ uint8_t wiznet_r_reg(uint16_t addr)
 
 void wiznet_w_reg16(uint16_t addr, uint16_t val)
 {
-    SPI16_MODE;
-
     W5200_CS_START;
     SPI16(addr);
-    SPI16(W52_SPI_OPCODE_WRITE | 0x0001);
+    SPI16(W52_SPI_OPCODE_WRITE | 0x0002);
     SPI16(val);
     W5200_CS_STOP;
 }
 
 uint16_t wiznet_r_reg16(uint16_t addr)
 {
-    SPI8_MODE;
     uint16_t val;
 
     W5200_CS_START;
     SPI16(addr);
-    SPI16(W52_SPI_OPCODE_READ | 0x0001);
-    val = SPI16(0xFFFF);
+    SPI16(W52_SPI_OPCODE_READ | 0x0002);
+    val = SPI16(0x0000);
     W5200_CS_STOP;
 
     return val;
@@ -71,7 +62,6 @@ uint16_t wiznet_r_reg16(uint16_t addr)
 
 void wiznet_w_set(uint16_t addr, uint16_t len, uint8_t val)
 {
-    SPI8_MODE;
     uint16_t i;
 
     if (!len) {
@@ -92,7 +82,6 @@ void wiznet_w_set(uint16_t addr, uint16_t len, uint8_t val)
 
 void wiznet_w_buff(uint16_t addr, uint8_t *buf, uint16_t len)
 {
-    SPI8_MODE;
     uint16_t i;
 
     if (!len) {
@@ -113,8 +102,6 @@ void wiznet_w_buff(uint16_t addr, uint8_t *buf, uint16_t len)
 
 void wiznet_r_buff(uint16_t addr, uint8_t *buf, uint16_t len)
 {
-    SPI8_MODE;
-
     uint16_t i;
 
     if (!len) {
@@ -127,7 +114,7 @@ void wiznet_r_buff(uint16_t addr, uint8_t *buf, uint16_t len)
     SPI8((W52_SPI_OPCODE_READ >> 8) | (len >> 8) );
     SPI8(len & 0xFF);
     for (i=0; i < len; i++) {
-            buf[i] = SPI8(0xFF);
+            buf[i] = SPI8(0x00);
     }
 
     W5200_CS_STOP;

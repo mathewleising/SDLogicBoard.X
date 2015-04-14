@@ -22,9 +22,9 @@
 #include "w5200_regs.h"
 
 /* Register I/O primitives */
-void wiznet_w_reg(uint16_t, uint8_t data);
+void wiznet_w_reg(uint16_t addr, uint8_t data);
 uint8_t wiznet_r_reg(uint16_t addr);
-void wiznet_w_reg16(uint16_t, uint16_t data);
+void wiznet_w_reg16(uint16_t addr, uint16_t data);
 uint16_t wiznet_r_reg16(uint16_t addr);
 
 void wiznet_w_buff(uint16_t addr, uint8_t *data, uint16_t len);
@@ -87,6 +87,8 @@ void wiznet_r_buff(uint16_t addr, uint8_t *data, uint16_t len);
   }
 
   __GP_REGISTER8 (MR,     W52_MR);    // Mode
+  __GP_REGISTER8 (VRSN,   W52_VERSIONR);    // Version
+  __GP_REGISTER8 (PHY,    W52_PHYSTATUS);    // Version
   __GP_REGISTER_N(GAR,    W52_GATEWAY, 4); // Gateway IP address
   __GP_REGISTER_N(SUBR,   W52_SUBNETMASK, 4); // Subnet mask address
   __GP_REGISTER_N(SHAR,   W52_SOURCEMAC, 6); // Source MAC address

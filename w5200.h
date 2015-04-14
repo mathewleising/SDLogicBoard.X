@@ -15,7 +15,7 @@ extern "C" {
 #include <stdint.h>
 #include "w5200_io.h"
 
-void w5200_init(void);
+int w5200_init(void);
 int w5200_buff(int16_t data);
 void w5200_update(void);
 

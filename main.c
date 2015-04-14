@@ -4,25 +4,46 @@
  *
  * Created on March 25, 2015, 11:16 AM
  */
-
-#include <p32xxxx.h>
+#include <xc.h>
 #include <sys/attribs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "config.h"
 #include "w5200.h"
 
-// Configuration Bit settings
-// SYSCLK = 48 MHz (8MHz Crystal / FPLLIDIV * FPLLMUL / FPLLODIV)
-// PBCLK = 48 MHz (SYSCLK / FPBDIV)
-// Primary Osc w/PLL (XT+,HS+,EC+PLL)
-// WDT OFF
-// Other options are don't care
-// 48MHz (Overclocked..)
-// #pragma config FPLLMUL = MUL_24, FPLLIDIV = DIV_2, FPLLODIV = DIV_2, FWDTEN = OFF
-// 40MHz
-#pragma config FPLLMUL = MUL_20, FPLLIDIV = DIV_2, FPLLODIV = DIV_2, FWDTEN = OFF
-#pragma config POSCMOD = HS, FNOSC = PRIPLL, FPBDIV = DIV_1
+// DEVCFG3
+// USERID = No Setting
+#pragma config PMDL1WAY = ON            // Peripheral Module Disable Configuration (Allow only one reconfiguration)
+#pragma config IOL1WAY = ON             // Peripheral Pin Select Configuration (Allow only one reconfiguration)
+#pragma config FUSBIDIO = ON            // USB USID Selection (Controlled by the USB Module)
+#pragma config FVBUSONIO = ON           // USB VBUS ON Selection (Controlled by USB Module)
+
+// DEVCFG2
+#pragma config FPLLIDIV = DIV_2         // PLL Input Divider (2x Divider)
+#pragma config FPLLMUL = MUL_20         // PLL Multiplier (20x Multiplier), MUL_24 for 48
+#pragma config UPLLIDIV = DIV_12        // USB PLL Input Divider (12x Divider)
+#pragma config UPLLEN = OFF             // USB PLL Enable (Disabled and Bypassed)
+#pragma config FPLLODIV = DIV_2         // System PLL Output Clock Divider (PLL Divide by 2)
+
+// DEVCFG1
+#pragma config FNOSC = PRIPLL           // Oscillator Selection Bits (Primary Osc w/PLL (XT+,HS+,EC+PLL))
+#pragma config FSOSCEN = ON             // Secondary Oscillator Enable (Enabled)
+#pragma config IESO = ON                // Internal/External Switch Over (Enabled)
+#pragma config POSCMOD = HS             // Primary Oscillator Configuration (HS osc mode)
+#pragma config OSCIOFNC = OFF           // CLKO Output Signal Active on the OSCO Pin (Disabled)
+#pragma config FPBDIV = DIV_1           // Peripheral Clock Divisor (Pb_Clk is Sys_Clk/1)
+#pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Clock Switch Disable, FSCM Disabled)
+#pragma config WDTPS = PS1048576        // Watchdog Timer Postscaler (1:1048576)
+#pragma config WINDIS = OFF             // Watchdog Timer Window Enable (Watchdog Timer is in Non-Window Mode)
+#pragma config FWDTEN = OFF             // Watchdog Timer Enable (WDT Disabled (SWDTEN Bit Controls))
+#pragma config FWDTWINSZ = WINSZ_25     // Watchdog Timer Window Size (Window Size is 25%)
+
+// DEVCFG0
+#pragma config JTAGEN = ON              // JTAG Enable (JTAG Port Enabled)
+#pragma config ICESEL = ICS_PGx3        // ICE/ICD Comm Channel Select (Communicate on PGEC3/PGED3)
+#pragma config PWP = OFF                // Program Flash Write Protect (Disable)
+#pragma config BWP = OFF                // Boot Flash Write Protect bit (Protection Disabled)
+#pragma config CP = OFF                 // Code Protect (Protection Disabled)
 
 #define PPS_UNLOCK CFGCONbits.IOLOCK = 0;
 #define PPS_LOCK CFGCONbits.IOLOCK = 1;
@@ -30,6 +51,7 @@
 // Function prototypes
 int main(void);
 void sysyem_initialize(void);
+void die(void);
 
 int main(void)
 {
@@ -40,7 +62,11 @@ int main(void)
 
     while(1)
     {
-        //w5200_update();
+        if (w5200_buff(0x5555)<0)
+            die();
+        
+        //delay_for_1000_nops();
+        w5200_update();
     }
 
     return 1;
@@ -121,38 +147,23 @@ void sysyem_initialize(void)
     
     // Step 3: Clear interrupt flags
     IFS0CLR = 0xFFFFFFFF;
-    IFS1CLR = 0xFFFFFFFF;
+    IFS1CLR = 0xFFFFFFFF;  
     
+    // Init devices before turning on
+    while (w5200_init()<0)
+        ;
+    
+    // Step 4: Enable Interrupts
+    IEC0SET = 0b00000000100001000010000100000000;
+
     // STATUS: Green, pic and devices ready
     LED1_R_OFF;
     LED2_R_OFF;
     LED1_G_ON;
-    LED2_G_ON;    
-    
-    // Init devices before turning on
-    w5200_init();
-    
-    // Step 4: Enable Interrupts
-    IEC0SET = 0b00000000100001000010000100000000;
-}
-
-void __ISR(_EXTERNAL_3_VECTOR, IPL7AUTO) _External3Handler(void) {
-    // clear the interrupt flag
-    //mINT3ClearIntFlag();
-    // .. things to do ..
-}
-
-void __ISR(_EXTERNAL_4_VECTOR, IPL3AUTO) _External4Handler(void)
-{
-    // Disable Interrupts, indicate hard reset
-    IEC0CLR = 0xFFFFFFFF;
-    LED1_R_ON;
-    LED2_R_ON;
-    LED1_G_ON;
     LED2_G_ON;
 }
 
-void __ISR(_EXTERNAL_2_VECTOR, IPL2AUTO) _External2Handler(void)
+void die(void)
 {
     // Disable Interrupts, indicate hard reset
     IEC0CLR = 0xFFFFFFFF;
@@ -162,12 +173,29 @@ void __ISR(_EXTERNAL_2_VECTOR, IPL2AUTO) _External2Handler(void)
     LED2_G_ON;
 }
 
+void __ISR(_EXTERNAL_3_VECTOR, IPL7AUTO) _External3Handler(void) {
+    // clear the interrupt flag
+    //mINT3ClearIntFlag();
+    // .. things to do ..
+//    uint16_t data = adc_data();
+//    if (w5200_buff(data)<0)
+//        die();
+}
+
+void __ISR(_EXTERNAL_4_VECTOR, IPL3AUTO) _External4Handler(void)
+{
+    // Disable Interrupts, indicate hard reset
+    die();
+}
+
+void __ISR(_EXTERNAL_2_VECTOR, IPL2AUTO) _External2Handler(void)
+{
+    // Disable Interrupts, indicate hard reset
+    die();
+}
+
 void __ISR(_EXTERNAL_1_VECTOR, IPL1AUTO) _External1Handler(void)
 {
     // Disable Interrupts, indicate hard reset
-    IEC0CLR = 0xFFFFFFFF;
-    LED1_R_ON;
-    LED2_R_ON;
-    LED1_G_ON;
-    LED2_G_OFF;
+    die();
 }

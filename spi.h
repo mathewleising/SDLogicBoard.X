@@ -14,11 +14,6 @@ extern "C" {
 
 #include <stdint.h>
 
-#define SPI1_8 SPI1CON = 0x8020
-#define SPI1_16 SPI1CON = 0x8420
-#define SPI2_8 SPI2CON = 0x8020
-#define SPI2_16 SPI2CON = 0x8420
-
 void spi1_init(void);
 void spi2_init(void);
 uint8_t spi1_8(uint8_t data);

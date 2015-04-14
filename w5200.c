@@ -4,6 +4,8 @@
 #include "w5200_regs.h"
 #include "w5200_io.h"
 #include "config.h"
+#include "spi.h"
+#include "delay.h"
 
 #define QUEUESIZE 50
 
@@ -15,7 +17,7 @@ int16_t *lst;
 
 void hard_reset(void);
 
-void w5200_init(void)
+int w5200_init(void)
 {
     count = 0;
     sock = 0;
@@ -31,12 +33,22 @@ void w5200_init(void)
 
     // Go hard in the paint
     hard_reset();
+    while(!read_VRSN())
+    {
+        delay_for_1000_nops_x(8000);
+    }
 
     // Configure
+    write_MR(0x80);
+    delay_millis(200); // Asks for 150m, 200 to be safe
+    delay_for_1000_nops_x(8000);
+    delay_for_1000_nops_x(8000);
     write_MR(MR_CONF);
     write_SHAR(w52_const_mac_default);
     write_SIPR(w52_const_ip_default);
     write_IMR(IMR_CONF);
+
+    return init_sockets();
 }
 
 int w5200_buff(int16_t data)
@@ -93,14 +105,14 @@ void w5200_update(void)
         count--;
 
         //Place data in socket
-
+        put_socket(data);
     }
 }
 
 void hard_reset(void)
 {
     W5200_RST_START;
-    delay_micros(50); // Asks for 2u, 50 to be safe
+    delay_millis(200); // Asks for 150m, 200 to be safe
     W5200_RST_STOP;
     delay_millis(200); // Asks for 150m, 200 to be safe
 }

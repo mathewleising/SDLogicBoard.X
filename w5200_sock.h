@@ -12,15 +12,6 @@
 extern "C" {
 #endif
 
-/* Const IP and MAC address values */
-extern const uint16_t w52_const_subnet_classA[2];
-extern const uint16_t w52_const_subnet_classB[2];
-extern const uint16_t w52_const_subnet_classC[2];
-extern const uint16_t w52_const_ip_default[2];
-extern const uint16_t w52_const_mac_default[3];
-
-extern const char *wiznet_tcp_state[10];
-extern const uint8_t wiznet_tcp_state_idx[10];
 
 /* Functions */
 //int wiznet_irq_getsocket();
@@ -28,9 +19,10 @@ extern const uint8_t wiznet_tcp_state_idx[10];
 //int wiznet_phystate();
 
 int init_sockets(void);
+void put_socket(uint16_t data);
 //int wiznet_close(int);
-int wiznet_txcommit(int);
-int wiznet_send(int, void *, uint16_t, uint8_t);
+//int wiznet_txcommit(int);
+//int wiznet_send(int, void *, uint16_t, uint8_t);
 
 // Ethernet MACRAW I/O
 //int wiznet_mac_recvfrom(void *, uint16_t, uint16_t *, uint16_t *, uint16_t *, uint8_t, uint8_t);
