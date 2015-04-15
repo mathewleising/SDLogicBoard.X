@@ -4,12 +4,15 @@
  *
  * Created on March 25, 2015, 11:16 AM
  */
+
+#include <plib.h>
 #include <xc.h>
 #include <sys/attribs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "config.h"
 #include "w5200.h"
+#include "max110.h"
 
 // DEVCFG3
 // USERID = No Setting
@@ -47,16 +50,24 @@
 
 #define PPS_UNLOCK CFGCONbits.IOLOCK = 0;
 #define PPS_LOCK CFGCONbits.IOLOCK = 1;
+#define EXT1_INT_MASK 0x00000100
+#define EXT2_INT_MASK 0x00002000
+#define EXT3_INT_MASK 0x00040000
+#define EXT4_INT_MASK 0x00800000
 
 // Function prototypes
 int main(void);
 void sysyem_initialize(void);
 void die(void);
+MAX110_d sensors;
+
 
 int main(void)
 {
     // Do I need to do this?
     // SYSTEMConfig(SYS_FREQ, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
+    SYSTEMConfigPerformance(SYS_FREQ);
+
 
     sysyem_initialize();
 
@@ -111,8 +122,6 @@ void sysyem_initialize(void)
     INT3R = ADC_DATA_READY;
     INT4R = ETH_INT;
 
-    PPS_LOCK;
-
     // Interrupt config
     
     // INT1 ? External Interrupt 1 8 7 IFS0<8> IEC0<8> IPC1<28:26> IPC1<25:24>
@@ -124,6 +133,9 @@ void sysyem_initialize(void)
     // Note: Don't know if I should actually kill them all...
     IEC0CLR = 0xFFFFFFFF;
     IEC1CLR = 0xFFFFFFFF;
+
+    IFS0CLR = 0xFFFFFFFF;
+    IFS1CLR = 0xFFFFFFFF;
 
     // Step 2: Set Priorities (PIC favorites.. hehe)
     // Once again, clear all priorities...
@@ -148,13 +160,18 @@ void sysyem_initialize(void)
     // Step 3: Clear interrupt flags
     IFS0CLR = 0xFFFFFFFF;
     IFS1CLR = 0xFFFFFFFF;  
-    
-    // Init devices before turning on
-    while (w5200_init()<0)
-        ;
-    
+
     // Step 4: Enable Interrupts
     IEC0SET = 0b00000000100001000010000100000000;
+
+
+    INTEnableSystemMultiVectoredInt();
+    
+    PPS_LOCK;
+        // Init devices before turning on
+    while (w5200_init()<0)
+        ;
+    max110_init();
 
     // STATUS: Green, pic and devices ready
     LED1_R_OFF;
@@ -175,27 +192,35 @@ void die(void)
 
 void __ISR(_EXTERNAL_3_VECTOR, IPL7AUTO) _External3Handler(void) {
     // clear the interrupt flag
-    //mINT3ClearIntFlag();
-    // .. things to do ..
-//    uint16_t data = adc_data();
-//    if (w5200_buff(data)<0)
-//        die();
+    IFS0CLR = EXT3_INT_MASK;
+
+
+    get_data(&sensors);
+
+    LED1_G_ON;
+    LED2_G_OFF;
+    LED1_R_OFF;
+    LED2_R_ON;
+
 }
 
 void __ISR(_EXTERNAL_4_VECTOR, IPL3AUTO) _External4Handler(void)
 {
+    IFS0CLR = EXT4_INT_MASK;
     // Disable Interrupts, indicate hard reset
     die();
 }
 
 void __ISR(_EXTERNAL_2_VECTOR, IPL2AUTO) _External2Handler(void)
 {
+    IFS0CLR = EXT2_INT_MASK;
     // Disable Interrupts, indicate hard reset
     die();
 }
 
 void __ISR(_EXTERNAL_1_VECTOR, IPL1AUTO) _External1Handler(void)
 {
+    IFS0CLR = EXT1_INT_MASK;
     // Disable Interrupts, indicate hard reset
     die();
 }

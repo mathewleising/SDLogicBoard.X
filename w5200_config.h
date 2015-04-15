@@ -64,12 +64,18 @@
 /* Default IPs and utility subnets */
 #define MR_CONF 0x00
 #define IMR_CONF 0x00
+#define SOCK_IMR_CONF 0x00
+#define IMR2_CONF 0x00
+#define IR2_CONF 0x00
+#define PHY_CONF 0x00
 static uint8_t w52_const_subnet_classA[4] = {0xFF, 0x00, 0x00, 0x00};
 static uint8_t w52_const_subnet_classB[4] = {0xFF, 0xFF, 0x00, 0x00};
 static uint8_t w52_const_subnet_classC[4] = {0xFF, 0xFF, 0xFF, 0x00};
+static uint8_t gateway_ip[4] = {0xA9, 0x80, 0x00, 0x01};
 static uint8_t w52_const_ip_default[4] = {0xA9, 0x80, 0x80, 0x82};  // 169.128.128.130
 static uint8_t w52_const_mac_default[6] = {0x54, 0x52, 0x00, 0x00, 0xF8, 0x01};  // 54:52:00:00:F8:01 ... sounds random enough
-static uint8_t dest_ip[4] = {0x1F,0x91,0x1F,0x91};
+static uint8_t dest_mac[6] = {0x1C,0x75,0x08,0xFC,0x87,0x19};
+static uint8_t dest_ip[4] = {0x1F,0x91,0x00,0x0F};
 //Use IANA recommended ephemeral port range 49152-65535
 #define DST_PORT 0xC350
 

@@ -53,6 +53,13 @@ uint16_t spi1_16(uint16_t data)
     return SPI1BUF;
 }
 
+uint32_t spi1_32(uint32_t data)
+{
+    SPI1BUF = data;
+    while (!SPI1_READY);  // wait until SPI transmission complete
+    return SPI1BUF;
+}
+
 uint8_t spi2_8(uint8_t data)
 {
     SPI2BUF = data;

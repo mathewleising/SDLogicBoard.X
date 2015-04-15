@@ -9,6 +9,7 @@
 
 #define QUEUESIZE 50
 
+
 int count;
 int sock;
 int16_t qd[QUEUESIZE];
@@ -33,20 +34,23 @@ int w5200_init(void)
 
     // Go hard in the paint
     hard_reset();
-    while(!read_VRSN())
+
+    uint8_t vsr = read_VRSN();
+    while(vsr != 0x03)
     {
-        delay_for_1000_nops_x(8000);
+        vsr = read_VRSN();
+        delay_for_1000_nops_x(8);
     }
 
-    // Configure
-    write_MR(0x80);
-    delay_millis(200); // Asks for 150m, 200 to be safe
-    delay_for_1000_nops_x(8000);
-    delay_for_1000_nops_x(8000);
     write_MR(MR_CONF);
+    write_GAR(gateway_ip);
+    write_SUBR(w52_const_subnet_classC);
     write_SHAR(w52_const_mac_default);
-    write_SIPR(w52_const_ip_default);
+    write_SIPR(dest_ip);
     write_IMR(IMR_CONF);
+    write_IMR(IMR2_CONF);
+    write_IR2(IR2_CONF);
+    write_PHYST(PHY_CONF);
 
     return init_sockets();
 }

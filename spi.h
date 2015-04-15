@@ -18,6 +18,7 @@ void spi1_init(void);
 void spi2_init(void);
 uint8_t spi1_8(uint8_t data);
 uint16_t spi1_16(uint16_t data);
+uint32_t spi1_32(uint32_t data);
 uint8_t spi2_8(uint8_t data);
 uint16_t spi2_16(uint16_t data);
 

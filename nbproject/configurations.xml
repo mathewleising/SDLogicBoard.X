@@ -13,6 +13,7 @@
       <itemPath>w5200.h</itemPath>
       <itemPath>w5200_sock.h</itemPath>
       <itemPath>w5200_buf.h</itemPath>
+      <itemPath>max110.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -27,6 +28,7 @@
       <itemPath>spi.c</itemPath>
       <itemPath>w5200.c</itemPath>
       <itemPath>w5200_sock.c</itemPath>
+      <itemPath>max110.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

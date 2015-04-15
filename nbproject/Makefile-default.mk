@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c
+SOURCEFILES_QUOTED_IF_SPACED=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c max110.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/w5200_io.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/delay.o.d ${OBJECTDIR}/spi.o.d ${OBJECTDIR}/w5200.o.d ${OBJECTDIR}/w5200_sock.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o ${OBJECTDIR}/max110.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/w5200_io.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/delay.o.d ${OBJECTDIR}/spi.o.d ${OBJECTDIR}/w5200.o.d ${OBJECTDIR}/w5200_sock.o.d ${OBJECTDIR}/max110.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o
+OBJECTFILES=${OBJECTDIR}/w5200_io.o ${OBJECTDIR}/main.o ${OBJECTDIR}/delay.o ${OBJECTDIR}/spi.o ${OBJECTDIR}/w5200.o ${OBJECTDIR}/w5200_sock.o ${OBJECTDIR}/max110.o
 
 # Source Files
-SOURCEFILES=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c
+SOURCEFILES=w5200_io.c main.c delay.c spi.c w5200.c w5200_sock.c max110.c
 
 
 CFLAGS=
@@ -130,6 +130,12 @@ ${OBJECTDIR}/w5200_sock.o: w5200_sock.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/w5200_sock.o 
 	@${FIXDEPS} "${OBJECTDIR}/w5200_sock.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200_sock.o.d" -o ${OBJECTDIR}/w5200_sock.o w5200_sock.c   
 	
+${OBJECTDIR}/max110.o: max110.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/max110.o.d 
+	@${RM} ${OBJECTDIR}/max110.o 
+	@${FIXDEPS} "${OBJECTDIR}/max110.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/max110.o.d" -o ${OBJECTDIR}/max110.o max110.c   
+	
 else
 ${OBJECTDIR}/w5200_io.o: w5200_io.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -166,6 +172,12 @@ ${OBJECTDIR}/w5200_sock.o: w5200_sock.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/w5200_sock.o.d 
 	@${RM} ${OBJECTDIR}/w5200_sock.o 
 	@${FIXDEPS} "${OBJECTDIR}/w5200_sock.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/w5200_sock.o.d" -o ${OBJECTDIR}/w5200_sock.o w5200_sock.c   
+	
+${OBJECTDIR}/max110.o: max110.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/max110.o.d 
+	@${RM} ${OBJECTDIR}/max110.o 
+	@${FIXDEPS} "${OBJECTDIR}/max110.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/max110.o.d" -o ${OBJECTDIR}/max110.o max110.c   
 	
 endif
 

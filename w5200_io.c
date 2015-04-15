@@ -41,6 +41,12 @@ uint8_t wiznet_r_reg(uint16_t addr)
 void wiznet_w_reg16(uint16_t addr, uint16_t val)
 {
     W5200_CS_START;
+//    SPI8(addr >> 8);
+//    SPI8(addr & 0xFF);
+//    SPI8(W52_SPI_OPCODE_WRITE >> 8);
+//    SPI8(0x02);
+//    SPI8((uint8_t)(val >> 8));
+//    SPI8((uint8_t)(val & 0xFF));
     SPI16(addr);
     SPI16(W52_SPI_OPCODE_WRITE | 0x0002);
     SPI16(val);
@@ -52,9 +58,15 @@ uint16_t wiznet_r_reg16(uint16_t addr)
     uint16_t val;
 
     W5200_CS_START;
+//    SPI8(addr >> 8);
+//    SPI8(addr & 0xFF);
+//    SPI8(W52_SPI_OPCODE_READ >> 8);
+//    SPI8(0x02);
+//    val = SPI8(0x00) << 8;
+//    val = val | SPI8(0x00) & 0xFF;
     SPI16(addr);
     SPI16(W52_SPI_OPCODE_READ | 0x0002);
-    val = SPI16(0x0000);
+    val = val | SPI16(0x0000);
     W5200_CS_STOP;
 
     return val;
